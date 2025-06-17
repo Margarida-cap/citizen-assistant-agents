@@ -29,7 +29,7 @@ Xavier Porcel-Blanes
 
 1. **Clone the Repository**
     ```bash
-    git clone https://github.com/your-org/your-agent-project.git
+    git clone https://github.com/Margarida-cap/citizen-assistant-agents.git
     cd agent-hackathon
     ```
 
@@ -73,3 +73,8 @@ Xavier Porcel-Blanes
 ## License
 
 This project is licensed under the MIT License.
+
+## Frontend Start
+
+npm install
+npm run dev
