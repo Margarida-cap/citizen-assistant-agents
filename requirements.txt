@@ -9,3 +9,6 @@ reportlab
 mcp[cli]
 uv
 google-cloud-firestore
+html2text
+npm
+react

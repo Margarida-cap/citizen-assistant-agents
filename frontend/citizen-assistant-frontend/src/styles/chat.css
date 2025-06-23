@@ -1,0 +1,56 @@
+/* Add or update in src/styles/chat.css */
+.chat-window {
+  background: rgba(30, 30, 30, 0.7);
+  border-radius: 12px;
+  padding: 1rem;
+  max-width: 1200px;
+  min-width: 600px;
+  min-height: 70vh;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.message {
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.message.user {
+  background-color: #e0f7fa;
+  align-self: flex-end;
+}
+
+.message.agent {
+  background-color: #f1f1f1;
+  align-self: flex-start;
+}
+
+.message-input {
+  display: flex;
+  border-top: 1px solid #ddd;
+}
+
+.message-input textarea {
+  flex: 1;
+  border: none;
+  padding: 0.5rem;
+  resize: none;
+  font-size: 1rem;
+}
+
+.message-input button {
+  border: none;
+  padding: 0 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+}

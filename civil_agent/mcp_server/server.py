@@ -2,11 +2,21 @@ from mcp.server.fastmcp import FastMCP
 from google.cloud import firestore
 from google.oauth2 import service_account
 import os
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from google.adk.sessions import InMemorySessionService
 
 
-# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# os.chdir(BASE_DIR)
-# print("Current working directory:", BASE_DIR)
+
+
+
+from google.genai import types
+from civil_agent.agent import runner, session_service
+
+load_dotenv()
+
+
 
 credentials_name = "hacker2025-team-38-dev-556d08c6be6a.json"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +48,55 @@ def add_user_information(user_id: str, parameters_to_add : dict) -> dict:
     except Exception as e:
         return {"error": f"Failed to add user information: {str(e)}"}    
 
-app = mcp
+# --- FastAPI wrapper for frontend integration ---
+app = FastAPI()
+
+# CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, specify your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/messages/")
+async def messages(request: Request):
+    data = await request.json()
+    user_query = data.get("user_query")
+    if not user_query:
+        return {"error": "No user_query provided"}
+
+    session_obj = await session_service.create_session(app_name="citizen-assistant", user_id="user1")
+
+    # Wrap the user’s text into a Content object
+    content = types.Content(
+        role="user",
+        parts=[types.Part(text=user_query)]
+    )
+
+    # Stream events from the Runner
+    final_reply = ""
+    async for event in runner.run_async(
+        user_id=session_obj.user_id,
+        session_id=session_obj.id,
+        new_message=content
+    ):
+        # When the Runner emits the final LLM response, capture it
+        if event.is_final_response() and event.content and event.content.parts:
+            final_reply = event.content.parts[0].text
+
+    return {"reply": final_reply}
+
+
+
+    # Here you can call your agent logic, or for demo, just echo:
+    # If you want to use MCP tools, you need to route the query accordingly.
+    # For now, just return a dummy response:
+    #return {"reply": f"Echo: {user_query}"}
+
+# Optionally, expose MCP's ASGI app at another route if needed
+# app.mount("/mcp", mcp)
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio") 
+    mcp.run(transport="stdio")

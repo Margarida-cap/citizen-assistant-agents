@@ -11,7 +11,19 @@ from google.adk.events import Event, EventActions
 from google.adk.tools import ToolContext
 from tavily import TavilyClient
 
+__all__ = ["root_agent", "runner", "session"]
+
+
+
+from google.adk.runners import Runner
+
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
+
+
+
+session_service = InMemorySessionService()
+session = session_service.create_session(app_name="citizen-assistant", user_id="user1")
+
 
 
 # Load environment variables
@@ -240,6 +252,8 @@ print(f"Using script: {relative_path}")
     
 
 
+
+
 # ------------------- AGENT -------------------
 root_agent = Agent(
     name="civil_agent",
@@ -259,4 +273,11 @@ root_agent = Agent(
         extract_pdf_form_fields,
         fill_pdf_form
     ]
+)
+ #---------------------------RUNNER---------------------------
+
+runner = Runner(
+  agent=root_agent,                # your LlmAgent or Agent instance
+  app_name="citizen-assistant",               # must match your session’s app_name
+  session_service=session_service  # the service you just created
 )
