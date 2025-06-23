@@ -1,0 +1,11 @@
+google-adk
+langchain
+langchain-community
+beautifulsoup4
+tavily-python
+pdfwr
+pypdf
+reportlab
+mcp[cli]
+uv
+google-cloud-firestore

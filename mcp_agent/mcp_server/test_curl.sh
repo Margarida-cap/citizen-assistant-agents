@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8001/messages/ -H "Content-Type: application/json" -d '{ "tool_name": "get_firestore_document", "params": { "collection": "users", "doc_id": "example_user" } }'
