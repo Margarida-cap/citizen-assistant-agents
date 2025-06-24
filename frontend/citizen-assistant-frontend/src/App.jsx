@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ChatStreamDemo from './components/ChatComponent';
 import ChatWindow from './components/ChatWindow';
+
 
 const UserMenu = () => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
+
+
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -18,6 +22,7 @@ const UserMenu = () => {
 
   return (
     <div ref={menuRef} style={{ position: 'absolute', top: 24, right: 32, zIndex: 100 }}>
+      
       <button
         onClick={() => setOpen((o) => !o)}
         style={{
@@ -88,8 +93,9 @@ const App = () => (
       textShadow: '0 2px 8px #000'
     }}>
       Citizen Assistant
+      <ChatWindow />
+    {/* <ChatStreamDemo /> */}
     </h1>
-    <ChatWindow />
   </div>
 );
 
