@@ -10,6 +10,7 @@ from google.adk.sessions import InMemorySessionService
 from google.adk.events import Event, EventActions
 from google.adk.tools import ToolContext
 from tavily import TavilyClient
+from civil_agent.validators import *
 
 __all__ = ["root_agent", "runner", "session"]
 
@@ -217,25 +218,31 @@ def fill_pdf_form(pdf_url: str, user_data: dict):
 
 
 
+
+
+
+
+
+
 instruction=("""
 Assist users with questions about U.S. government services such as renewing passports, applying for visas, or obtaining permits.
-Use `search_government_info` to find the most relevant .gov page.
-Then use `scrape_government_page` to extract readable content and links.
-Store the links in session state as `scraped_links`, and track visited pages in `visited_urls`.
-If the answer is not complete, inspect `scraped_links` and choose a relevant link to follow by calling `scrape_government_page` again.
+Use search_government_info to find the most relevant .gov page.
+Then use scrape_government_page to extract readable content and links.
+Store the links in session state as scraped_links, and track visited pages in visited_urls.
+If the answer is not complete, inspect scraped_links and choose a relevant link to follow by calling scrape_government_page again.
 
 Always include the URLs used to retrieve the information in your final response.
-Avoid revisiting URLs already in `visited_urls`.
-             
+Avoid revisiting URLs already in visited_urls.
 
-If the user asks for help filling a form, say this ability is in testing. 
-Then, show how it would work using the DS82 form - passport renewal form.
-For this, first give the user the url `https://storage.googleapis.com/demo-for-files/ds82_blank_form.pdf` and call the `extract_pdf_form_fields` tool with this link to get the fields of the form.
-Then, use the MCP `get_user_information` tool to fetch the user data with the user id `5atiOSaVrXg31L5zTX9oF5mLHZx2`.
-Based on the extracted fields, ask the user for any missing data.
-Then create a dictionary with field names as keys and the user data as values. Show the dictionary to the user.
-With all necessary data collected, fill the form by calling the `fill_pdf_form` tool.
-Notify the user that the filled form is available for download.       
+When the user provides or requests to change any personal data field, the agent must run the corresponding validate_<field> function before accepting or updating that value.
+For example, if the user says “Change my sex to Male,” call validate_sex("Male") to confirm it's valid; if it fails, prompt the user to correct it. 
+Apply the same pattern for all fields (e.g. validate_date_of_birth, validate_ssn, validate_email, etc.), and only proceed once each input passes validation.
+
+If the user asks for help filling a form, say this ability is in testing. Then, show how it would work using the DS82 form - passport renewal form.
+For this, first give the user the url https://storage.googleapis.com/demo-for-files/ds82_blank_form.pdf and call the extract_pdf_form_fields tool with this link to get the fields of the form.
+Then, use the MCP get_user_information tool to fetch the user data with the user id 5atiOSaVrXg31L5zTX9oF5mLHZx2.
+Based on the extracted fields, ask the user for any missing data. Then create a dictionary with field names as keys and the user data as values. Show the dictionary to the user. 
+With all necessary data collected, fill the form by calling the fill_pdf_form tool. Notify the user that the filled form is available for download.     
                          
 
 """)
@@ -271,7 +278,27 @@ root_agent = Agent(
             )
         ),
         extract_pdf_form_fields,
-        fill_pdf_form
+        fill_pdf_form,
+
+        # validators tools
+        validate_sex,
+        validate_birth_place,
+        validate_country,
+        validate_other_names,
+        validate_document_type,
+        validate_height,
+        validate_hair_color,
+        validate_eye_color,
+        validate_occupation,
+        validate_employer,
+        validate_phone_number,
+        validate_email,
+        validate_ssn,
+        validate_date_of_birth,
+        validate_full_name,
+        validate_address,
+
+
     ]
 )
  #---------------------------RUNNER---------------------------
