@@ -42,6 +42,7 @@
 .message-icon {
   display: flex;
   align-items: center;
+  margin-bottom: 5px;
 }
 
 .message {
