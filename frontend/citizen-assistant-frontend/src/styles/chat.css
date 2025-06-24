@@ -28,13 +28,16 @@
 }
 
 .message-row.user {
-  flex-direction: row-reverse;
-  justify-content: flex-end;
+  flex-direction: column-reverse;
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
 }
 
 .message-row.agent {
   flex-direction: row;
   justify-content: flex-start;
+  align-items: flex-end;
 }
 
 .message-icon {
@@ -55,9 +58,9 @@
 .message.user {
   background-color: #1976d2;
   color: #fff;
-  align-self: flex-end;
-  margin-left: 8px;   /* icon on right, bubble left */
+  align-self: flex-end;  
   margin-right: 0;
+  text-align: right;
 }
 
 .message.agent {
@@ -65,7 +68,7 @@
   color: #fff;
   align-self: flex-start;
   margin-left: 0;
-  margin-right: 8px;  /* icon on left, bubble right */
+  margin-right: 8px;
 }
 
 .message-input {
