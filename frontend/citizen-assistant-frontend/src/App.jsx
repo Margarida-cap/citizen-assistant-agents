@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Login from './components/Login';
+import ChatStreamDemo from './components/ChatComponent';
 import ChatWindow from './components/ChatWindow';
 import { decodeJwt } from './utils/jwt';
 
-const UserMenu = ({ userInfo }) => {
-  const [open, setOpen] = React.useState(false);
-  const menuRef = React.useRef();
 
-  React.useEffect(() => {
+const UserMenu = () => {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef();
+
+
+
+  // Close menu if clicked outside
+  useEffect(() => {
     const handleClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpen(false);
@@ -19,6 +24,7 @@ const UserMenu = ({ userInfo }) => {
 
   return (
     <div ref={menuRef} style={{ position: 'absolute', top: 24, right: 32, zIndex: 100 }}>
+      
       <button
         onClick={() => setOpen((o) => !o)}
         style={{
@@ -125,5 +131,29 @@ const App = () => {
     </div>
   );
 };
+const App = () => (
+  <div style={{
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  }}>
+    <UserMenu />
+    <h1 style={{
+      color: '#fff',
+      textAlign: 'center',
+      marginTop: '2rem',
+      marginBottom: '1.5rem',
+      letterSpacing: '2px',
+      textShadow: '0 2px 8px #000'
+    }}>
+      Citizen Assistant
+      <ChatWindow />
+    {/* <ChatStreamDemo /> */}
+    </h1>
+  </div>
+);
 
 export default App;

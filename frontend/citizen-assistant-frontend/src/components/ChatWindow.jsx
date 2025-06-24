@@ -3,9 +3,13 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import '../styles/chat.css';
 
-const ChatWindow = ({ idToken }) => {
+const AGENT_ENDPOINT =
+  "https://us-central1-aiplatform.googleapis.com/v1/projects/hacker2025-team-38-dev/locations/us-central1/reasoningEngines/6147668578058371072:streamQuery?alt=sse";
+const ACCESS_TOKEN = "..."
+const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
   const [dragActive, setDragActive] = useState(false);
+  const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
   // Auto-scroll to newest message
@@ -16,20 +20,73 @@ const ChatWindow = ({ idToken }) => {
   const sendMessage = async (text) => {
     if (!text.trim()) return;
     setMessages((m) => [...m, { from: 'user', text }]);
-    const reply = await fetchAgentResponse(text);
-    setMessages((m) => [...m, { from: 'agent', text: reply }]);
+    setLoading(true);
+
+    // Add a placeholder for the agent's streaming response
+    setMessages((m) => [...m, { from: 'agent', text: '' }]);
+    const agentIndex = messages.length + 1; // index of the new agent message
+
+    try {
+      const response = await fetch(
+        AGENT_ENDPOINT,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ACCESS_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            "class_method": "stream_query",
+            "input": {
+              "message": text,
+              "user_id": "demo-user"
+            }
+          }),
+        }
+      );
+
+      if (!response.body) {
+        updateAgentMessage(agentIndex, 'No response body.');
+        setLoading(false);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let responseBuffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        responseBuffer += chunk;
+
+        try {
+          const parsed = JSON.parse(chunk);
+          const text = parsed?.content?.parts?.[0]?.text;
+          if (text) {
+            updateAgentMessage(agentIndex, (prev) => prev + text);
+          }
+        } catch (err) {
+          // If it's partial/incomplete JSON, skip or buffer more
+        }
+      }
+    } catch (err) {
+      updateAgentMessage(agentIndex, 'Error contacting agent.');
+    }
+    setLoading(false);
   };
 
-  const fetchAgentResponse = async (query) => {
-    const res = await fetch('http://localhost:8001/messages/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${idToken}` },
-      body: JSON.stringify({ user_query: query })
-    });
-    const data = await res.json();
-    return data.reply || JSON.stringify(data);
+  // Helper to update the agent's streaming message
+  const updateAgentMessage = (index, textOrUpdater) => {
+    setMessages((prev) =>
+      prev.map((msg, i) =>
+        i === index
+          ? { ...msg, text: typeof textOrUpdater === 'function' ? textOrUpdater(msg.text) : textOrUpdater }
+          : msg
+      )
+    );
   };
 
   // Handle file upload
@@ -77,7 +134,7 @@ const ChatWindow = ({ idToken }) => {
     >
       <MessageList messages={messages} />
       <div ref={bottomRef} />
-      <MessageInput onSend={sendMessage} />
+      <MessageInput onSend={sendMessage} disabled={loading} />
       <div className="file-upload">
         <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
           <input
@@ -107,8 +164,13 @@ const ChatWindow = ({ idToken }) => {
           <span>Drop file here to upload</span>
         </div>
       )}
+      {loading && (
+        <div className="loading-indicator">
+          <span>Agent is typing...</span>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ChatWindow;
+export default ChatWindow

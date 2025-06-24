@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
+const MessageInput = ({ onSend, disabled }) => {
+  const [text, setText] = useState("");
 
-const MessageInput = ({ onSend }) => {
-  const [text, setText] = useState('');
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSend(text);
-    setText('');
+  const handleSend = () => {
+    if (text.trim()) {
+      onSend(text);
+      setText("");
+    }
   };
 
   return (
-    <form className="message-input" onSubmit={handleSubmit}>
-      <textarea
-        rows={2}
+    <div className="message-input">
+      <input
+        type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Ask something…"
+        onKeyDown={(e) => e.key === "Enter" && handleSend()}
+        placeholder="Ask something..."
+        disabled={disabled}
       />
-      <button type="submit">Send</button>
-    </form>
+      <button onClick={handleSend} disabled={disabled}>
+        Send
+      </button>
+    </div>
   );
 };
+
 
 export default MessageInput;

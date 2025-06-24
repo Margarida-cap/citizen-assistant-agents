@@ -1,17 +1,11 @@
 import os
 
 from google.adk import Agent
-from tavily import TavilyClient
 # from google.adk.tools.langchain_tool import LangchainTool # import
 # from google.adk.agents.callback_context import CallbackContext
 
 #from langchain.tools.tavily_search import TavilySearchResults  search engine for agents
 from dotenv import load_dotenv
-
-
-from urllib.parse import urljoin
-import requests
-from bs4 import BeautifulSoup
 
 from google.adk.tools import ToolContext
 
@@ -21,8 +15,8 @@ model_name = os.getenv("MODEL")
 
 
 
-from google.adk.tools import ToolContext, FunctionTool
-from google.genai import types
+
+
 
 ############################################################
 ############################################################
@@ -45,8 +39,6 @@ def get_document_fields(
             "fields": ["field1", "field2", ...]
         }
     """
-    import requests
-    import tempfile
     from pypdf import PdfReader
     # 1. Load the artifact
     try:
@@ -83,9 +75,6 @@ def fill_pdf_form_file(document_name: str, user_data: dict, tool_context: ToolCo
             "filled_pdf_path": "/mnt/data/filled_form.pdf"
         }
     """
-    import requests
-    import tempfile
-    import os
     from pypdf import PdfReader, PdfWriter
 
     try:
@@ -175,7 +164,6 @@ def fill_pdf_form(pdf_url: str, user_data: dict):
     """
     import requests
     import tempfile
-    import os
     from pypdf import PdfReader, PdfWriter
 
     try:
@@ -205,61 +193,6 @@ def fill_pdf_form(pdf_url: str, user_data: dict):
 
 
 
-
-# root_agent = Agent(
-#     name="form_fill_agent",
-#     model=model_name,
-#     description=("Help users fill forms for governmental services."),
-#     instruction=(instruction),
-#         tools=[]
-# )
-
-############################3## For PDF URL
-# root_agent = Agent(
-#     name="form_fill_agent",
-#     model=model_name,
-#     description="Help users fill out government PDF forms.",
-#     instruction="""
-    
-#         When the user provides a pdf form, call the extract_pdf_form_fields tool first
-#         to understand what information is needed. 
-#         Then, based on the extracted fields, ask the user for any missing data.
-#         Once all necessary data is collected, call the fill_pdf_form to fill the form.
-    
-#         The user information is the following:
-#         - Full Name: John Doe
-#         - Date of Birth: 01/01/1990 
-#         - Address: 123 Main St, Springfield, IL
-#         - Email: johndoe@gmail.com 
-#         - Phone Number: +1-555-123-4567
-#         - Social Security Number: 123-45-6789
-#     """,
-#     tools=[extract_pdf_form_fields, fill_pdf_form]
-# # )
-# def save_uploaded_file(file_content_base64: str, filename: str, tool_context: ToolContext):
-#     """
-#     Saves an uploaded file as an artifact.
-
-#     Args:
-#         file_content_base64 (str): The base64-encoded content of the uploaded file.
-#         filename (str): The name to save the file as.
-#         tool_context (ToolContext): The tool context for artifact management.
-
-#     Returns:
-#         dict: {
-#             "status": "success",
-#             "artifact_name": filename
-#         }
-#     """
-#     import base64
-#     try:
-#         file_content = base64.b64decode(file_content_base64)
-#         artifact_name = filename
-#         tool_context.save_artifact(file_content, artifact_name)
-#         return {"status": "success", "artifact_name": artifact_name}
-#     except Exception as e:
-#         return {"status": "error", "error_message": str(e)}
-
 root_agent = Agent(
     name="form_fill_agent",
     model=model_name,
@@ -283,4 +216,34 @@ root_agent = Agent(
     tools=[extract_pdf_form_fields, fill_pdf_form]
 )
 
+
+
+import vertexai
+from vertexai import agent_engines
+from vertexai.preview.reasoning_engines import AdkApp
+import os
+
+
+app = AdkApp(agent=root_agent)
+
+
+vertexai.init(
+    project=os.getenv("GOOGLE_CLOUD_PROJECT"),
+    location=os.getenv("GOOGLE_CLOUD_LOCATION"),
+    staging_bucket="gs://" + os.getenv("GOOGLE_CLOUD_PROJECT")+"-bucket",
+)
+
+remote_agent = agent_engines.create(
+    app,
+    requirements=[                  
+        "google-cloud-aiplatform[adk,agent_engines]",
+        "pypdf"],
+)
+
+
+for event in remote_agent.stream_query(
+    user_id="USER_ID",
+    message="What is your function?",
+):
+    print(event)
 
