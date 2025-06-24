@@ -5,7 +5,7 @@ import '../styles/chat.css';
 
 const AGENT_ENDPOINT =
   "https://us-central1-aiplatform.googleapis.com/v1/projects/hacker2025-team-38-dev/locations/us-central1/reasoningEngines/6147668578058371072:streamQuery?alt=sse";
-const ACCESS_TOKEN = "ya29.a0AW4XtxhooIiROZ6vMSMI1HSaxoXLU6O30vOw1XH3Wfu8WmqaJsdzWfHTNIdUqJPQWaz5W7FqWIbGRnI1hHyXLfYvA9GC4RVtC1t9YFK5tvH8ctd_QwYE05j3X-ABAPs0oz4Cs654GiMi566JzssCKONqZ4mX6kPkwXjtm3s43z0lwAaCgYKARoSARQSFQHGX2Mi9mjJ26aSyJ31UGyBEuttuw0181"
+const ACCESS_TOKEN = "ya29.a0AW4XtxhIJgHJicr9sE7S3Fxk1mjlTGm65TlvbhoVmNavKE8yc-ylbqAp4YENk2_l7X1IHwAf4fFEiIMRjCr_BPEUwAA44kxzpEsCgrB5MLO9AG9xdBz9JaIHSuEFx6v3UjoGqKNy8rfLgRiDilgz4-R7LibqwVk8uMwxlC2mdxqozgaCgYKAf8SARQSFQHGX2MiSzj-cyjoHlbEk77ogPxH1w0181"
 const ChatWindow = ({userInfo}) => {
   const [messages, setMessages] = useState([]);
   const [dragActive, setDragActive] = useState(false);

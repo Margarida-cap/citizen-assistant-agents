@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const MessageList = ({ messages, userInfo }) => (
   <div className="message-list">
@@ -17,7 +18,9 @@ const MessageList = ({ messages, userInfo }) => (
           </div>
         )}
         <div className={`message ${m.from}`}>
-          {m.text}
+          {m.from === 'agent'
+            ? <ReactMarkdown>{m.text}</ReactMarkdown>
+            : m.text}
         </div>
         {m.from === 'user' && (
           <div className="message-icon">
