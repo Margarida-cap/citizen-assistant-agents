@@ -3,9 +3,11 @@ from google.cloud import firestore
 from google.oauth2 import service_account
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from google.adk.sessions import InMemorySessionService
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
 
 
 
@@ -16,7 +18,7 @@ from civil_agent.agent import runner, session_service
 
 load_dotenv()
 
-
+CLIENT_ID = "299771489297-hv6h409jk0se5ubn5bdmnajmnffibhdi.apps.googleusercontent.com"
 
 credentials_name = "hacker2025-team-38-dev-556d08c6be6a.json"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -60,13 +62,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+def verify_google_token(token):
+    try:
+        idinfo = id_token.verify_oauth2_token(token, grequests.Request(), CLIENT_ID)
+        return idinfo  # contains user info
+    except Exception:
+        return None
+
 @app.post("/messages/")
 async def messages(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+    token = auth_header.split(" ")[1]
+    user_info = verify_google_token(token)
+    if not user_info:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
     data = await request.json()
     user_query = data.get("user_query")
     if not user_query:
         return {"error": "No user_query provided"}
 
+    return {"reply": f"Echo: {user_query} (user: {user_info.get('email')})"} #just to test frontend
     session_obj = await session_service.create_session(app_name="citizen-assistant", user_id="user1")
 
     # Wrap the user’s text into a Content object

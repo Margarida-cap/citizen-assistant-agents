@@ -3,7 +3,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import '../styles/chat.css';
 
-const ChatWindow = () => {
+const ChatWindow = ({ idToken }) => {
   const [messages, setMessages] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const bottomRef = useRef(null);
@@ -23,7 +23,9 @@ const ChatWindow = () => {
   const fetchAgentResponse = async (query) => {
     const res = await fetch('http://localhost:8001/messages/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}` },
       body: JSON.stringify({ user_query: query })
     });
     const data = await res.json();

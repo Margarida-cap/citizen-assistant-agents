@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Login from './components/Login';
 import ChatWindow from './components/ChatWindow';
+import { decodeJwt } from './utils/jwt';
 
-const UserMenu = () => {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef();
+const UserMenu = ({ userInfo }) => {
+  const [open, setOpen] = React.useState(false);
+  const menuRef = React.useRef();
 
-  // Close menu if clicked outside
-  useEffect(() => {
+  React.useEffect(() => {
     const handleClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpen(false);
@@ -35,11 +36,19 @@ const UserMenu = () => {
         }}
         aria-label="User menu"
       >
-        {/* User SVG icon */}
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#1976d2">
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z"/>
-        </svg>
+        {userInfo?.picture ? (
+          <img
+            src={userInfo.picture}
+            alt={userInfo.name}
+            style={{ width: 36, height: 36, borderRadius: '50%' }}
+          />
+        ) : (
+          // fallback icon
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#1976d2">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M12 14c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z"/>
+          </svg>
+        )}
       </button>
       {open && (
         <div
@@ -50,10 +59,21 @@ const UserMenu = () => {
             background: '#fff',
             borderRadius: 8,
             boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
-            minWidth: 180,
+            minWidth: 220,
             padding: '0.5rem 0',
           }}
         >
+          <div style={{ padding: '1rem', borderBottom: '1px solid #eee', textAlign: 'center' }}>
+            {userInfo?.picture && (
+              <img
+                src={userInfo.picture}
+                alt={userInfo.name}
+                style={{ width: 48, height: 48, borderRadius: '50%', marginBottom: 8 }}
+              />
+            )}
+            <div style={{ fontWeight: 'bold', color: '#222' }}>{userInfo?.name}</div>
+            <div style={{ fontSize: '0.95em', color: '#555' }}>{userInfo?.email}</div>
+          </div>
           <div style={{ padding: '0.75rem 1.25rem', cursor: 'pointer', color: '#1976d2' }}>
             Profile
           </div>
@@ -69,28 +89,41 @@ const UserMenu = () => {
   );
 };
 
-const App = () => (
-  <div style={{
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  }}>
-    <UserMenu />
-    <h1 style={{
-      color: '#fff',
-      textAlign: 'center',
-      marginTop: '2rem',
-      marginBottom: '1.5rem',
-      letterSpacing: '2px',
-      textShadow: '0 2px 8px #000'
+const App = () => {
+  const [idToken, setIdToken] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+
+  const handleLogin = (token) => {
+    setIdToken(token);
+    setUserInfo(decodeJwt(token));
+  };
+
+  if (!idToken) {
+    return <Login onLogin={handleLogin} />;
+  }
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative'
     }}>
-      Citizen Assistant
-    </h1>
-    <ChatWindow />
-  </div>
-);
+      <UserMenu userInfo={userInfo} />
+      <h1 style={{
+        color: '#fff',
+        textAlign: 'center',
+        marginTop: '2rem',
+        marginBottom: '1.5rem',
+        letterSpacing: '2px',
+        textShadow: '0 2px 8px #000'
+      }}>
+        Citizen Assistant
+      </h1>
+      <ChatWindow idToken={idToken} userInfo={userInfo} />
+    </div>
+  );
+};
 
 export default App;
